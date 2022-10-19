@@ -40,6 +40,9 @@ export default class Background {
 
   init() {
     chrome.runtime.onMessage.addListener((request, sender, sendResponse) => this.handlePopupMessage(request));
+    console.log('init');
+    
+    const a = setInterval(() => console.log('bg', this._recording), 2000);
   }
 
   async startRecording() {
@@ -51,7 +54,7 @@ export default class Background {
 
     await browser.injectContentScript()
     console.log('injected');
-    
+
     // this.toggleOverlay({ open: true, clear: true })
 
     this._boundedMessageHandler = this.handleMessage.bind(this)
@@ -65,6 +68,7 @@ export default class Background {
 
     chrome.webNavigation.onCompleted.addListener(this._boundedNavigationHandler)
     chrome.webNavigation.onBeforeNavigate.addListener(this._boundedWaitHandler)
+    chrome.webNavigation.onCompleted.addListener((what) => console.log('al', what));
 
     badge.start()
   }
@@ -145,9 +149,11 @@ export default class Background {
       return this.handleRecordingMessage(msg /*, sender*/)
     }
 
+    /*
     if (msg.type === 'SIGN_CONNECT') {
       return
     }
+    */
 
     // NOTE: To account for clicks etc. we need to record the frameId
     // and url to later target the frame in playback

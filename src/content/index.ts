@@ -14,7 +14,6 @@ function wtw(t: any) {
     document.body.style.backgroundColor = 'orange';
     setTimeout(() => { document.body.style.backgroundColor = 'white'; }, 1000);
     chrome.runtime.sendMessage({ action: 'contentController', value: 'contentController' });
-    console.log('OOOOOOOOOOOOOOOOOOOOOOOO');
     const store = new Store();
     window.contentController = new ContentController({
       // overlay: new Overlay({ store }),

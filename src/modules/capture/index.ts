@@ -1,10 +1,11 @@
 import EventEmitter from 'events'
 import getSelector from '../../services/selector'
+import { Store } from '../../services/Store'
 import { overlayActions, overlaySelectors } from '../overlay/constants'
 
 const BORDER_THICKNESS = 2
 class Capture extends EventEmitter {
-  store: any
+  store: Store
   isClipped: boolean
   _overlay: any
   _selector: any
@@ -15,7 +16,7 @@ class Capture extends EventEmitter {
   _boundeMouseOver: any
   _boundeMouseUp: any
   _boundedKeyUp: any
-  constructor({ isClipped = false, store = {} } = {}) {
+  constructor({ isClipped = false, store }: { isClipped: boolean, store: Store }) {
     super()
 
     this.store = store
