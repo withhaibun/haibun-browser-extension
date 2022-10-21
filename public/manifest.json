@@ -4,11 +4,11 @@
 	"version": "0.0.1",
 	"manifest_version": 3,
 	"permissions": [
-		"browser_action",
 		"storage",
 		"cookies",
 		"tabs",
 		"activeTab",
+		"webRequest",
 		"webNavigation",
 		"scripting"
 	],

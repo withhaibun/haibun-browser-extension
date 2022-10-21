@@ -1,0 +1,10 @@
+{
+  "mode": "all",
+  "steppers": [
+    "~@haibun/context/build/websocket-server/logger-websockets-server.js",
+    "vars",
+    "credentials",
+    "haibun"
+  ],
+  "features": {}
+}

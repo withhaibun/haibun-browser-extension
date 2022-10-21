@@ -38,13 +38,13 @@ export default class ContentController {
   }
 
   static log(msg: string) {
-    chrome.devtools.inspectedWindow.eval(`console.log('${msg}')`);
+    chrome.devtools.inspectedWindow.eval(`console.log(CC< '${msg}')`);
   }
   listenNetworkRequests() {
     const handleNetworkRequest = (request: any) => {
       ContentController.log('"request: " + unescape("' + escape(request.request.url));
     }
-    chrome.devtools.network?.onRequestFinished.addListener(handleNetworkRequest);
+    chrome.devtools.network.onRequestFinished.addListener(handleNetworkRequest);
   };
 
   listenBackgroundMessages() {

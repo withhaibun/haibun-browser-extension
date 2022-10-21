@@ -1,7 +1,6 @@
-import browser from '../services/browser';
 import { popupActions } from '../services/constants';
 import Background from './background';
-import MockChrome, { MockPort } from '../mock-chrome/MockChrome';
+import MockChrome  from '../mock-chrome/MockChrome';
 
 declare global {
   interface Window { chrome: typeof chrome; }
@@ -13,8 +12,8 @@ window.chrome = mockChrome;
 let bg;
 
 beforeEach(() => {
-  bg = new Background();
-  bg.init();
+  // bg = new Background(new LoggerWebsocketsClient());
+  // bg.init();
 })
 
 describe('pause', () => {

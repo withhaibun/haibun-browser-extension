@@ -64,9 +64,7 @@ export default class Recorder {
     }
 
     try {
-      chrome.runtime && chrome?.runtime?.onMessage
-        ? chrome.runtime.sendMessage(msg)
-        : this._eventLog.push(msg)
+      chrome.runtime.sendMessage(msg);
     } catch (err) {
       console.debug('caught error', err)
     }

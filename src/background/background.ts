@@ -5,10 +5,10 @@ import { popupActions, recordingControls } from '../services/constants'
 // import { overlayActions } from '../modules/overlay/constants'
 import { headlessActions } from '../modules/code-generator/constants'
 import CodeGenerator from '../modules/code-generator/index';
+import { IConnectedLogger } from '@haibun/core/build/lib/interfaces/logger';
+import { LoggerWebSocketsClient } from '.'
 
-console.log('cb', chrome.action);
 const badge = new Badge();
-
 
 export default class Background {
   private _recording: any[]
@@ -20,8 +20,10 @@ export default class Background {
   private _isPaused: boolean
   private _handledGoto: boolean
   private _handledViewPortSize: boolean
+  logger: LoggerWebSocketsClient;
 
-  constructor() {
+  constructor(logger: LoggerWebSocketsClient) {
+    this.logger = logger;
     this._recording = []
     this._boundedMessageHandler = null
     this._boundedNavigationHandler = null
@@ -41,12 +43,11 @@ export default class Background {
   init() {
     chrome.runtime.onMessage.addListener((request, sender, sendResponse) => this.handlePopupMessage(request));
     console.log('init');
-    
-    const a = setInterval(() => console.log('bg', this._recording), 2000);
   }
 
   async startRecording() {
-    // await this.cleanUp()
+    await this.cleanUp()
+    await this.logger.connect();
 
     this._badgeState = ''
     this._handledGoto = false
@@ -66,14 +67,25 @@ export default class Background {
     // chrome.runtime.onMessage.addListener(this._boundedMessageHandler)
     // chrome.runtime.onMessage.addListener(this.overlayHandler)
 
-    chrome.webNavigation.onCompleted.addListener(this._boundedNavigationHandler)
+    chrome.tabs.onActivated.addListener((activeInfo) => {
+      chrome.tabs.get(activeInfo.tabId, function (tab) {
+        console.log(':::', tab);
+      });
+    });
     chrome.webNavigation.onBeforeNavigate.addListener(this._boundedWaitHandler)
-    chrome.webNavigation.onCompleted.addListener((what) => console.log('al', what));
+    chrome.webNavigation.onCompleted.addListener((what) => {
+      this._boundedNavigationHandler(what);
+      console.log('xal1', what)
+      chrome.tabs.query({ active: true, currentWindow: true }, (where) => {
+        console.log('xal', what, where)
+      });
+    });
 
     badge.start()
   }
 
-  stop() {
+  async stop() {
+    await this.logger.disconnect();
     this._badgeState = this._recording.length > 0 ? '1' : ''
 
     chrome.runtime.onMessage.removeListener(this._boundedMessageHandler)
@@ -105,7 +117,7 @@ export default class Background {
     })
   }
 
-  recordCurrentUrl(href: any) {
+  recordCurrentUrl(href: string) {
     if (!this._handledGoto) {
       this.handleMessage({
         selector: undefined,
@@ -117,7 +129,7 @@ export default class Background {
     }
   }
 
-  recordCurrentViewportSize(value: any) {
+  recordCurrentViewportSize(value: { width: number, height: number }) {
     if (!this._handledViewPortSize) {
       this.handleMessage({
         selector: undefined,
@@ -136,6 +148,7 @@ export default class Background {
     })
   }
 
+  /*
   recordScreenshot(value: any) {
     this.handleMessage({
       selector: undefined,
@@ -143,6 +156,7 @@ export default class Background {
       action: headlessActions.SCREENSHOT,
     })
   }
+  */
 
   handleMessage(msg: any, sender?: any) {
     if (msg.control) {
@@ -161,8 +175,9 @@ export default class Background {
     msg.frameUrl = sender?.url;
 
     if (!this._isPaused) {
-      this._recording.push(msg)
-      storage.set({ recording: this._recording })
+      this.logger.log('handleMessage', msg);
+      // this._recording.push(msg)
+      // storage.set({ recording: this._recording })
     }
   }
 
@@ -243,47 +258,51 @@ export default class Background {
       this.recordCurrentUrl(href)
     }
 
+    /*
     if (control === recordingControls.GET_SCREENSHOT) {
       this.recordScreenshot(value)
     }
+    */
   }
 
   handlePopupMessage(msg: any) {
     console.log('\n\n________\nMESSAGE', msg);
 
     if (!msg.action) {
-      return
+      return;
     }
 
     if (msg.action === popupActions.START_RECORDING) {
       this.startRecording()
-    }
+    } else
 
-    if (msg.action === popupActions.STOP_RECORDING) {
-      browser.sendTabMessage({ action: popupActions.STOP_RECORDING })
-      this.stop()
-    }
+      if (msg.action === popupActions.STOP_RECORDING) {
+        browser.sendTabMessage({ action: popupActions.STOP_RECORDING })
+        this.stop()
+      } else
 
-    if (msg.action === popupActions.CLEAN_UP) {
-      // chrome.runtime.onMessage.removeListener(this.overlayHandler)
-      msg.value && this.stop()
-      // this.toggleOverlay()
-      this.cleanUp()
-    }
+        if (msg.action === popupActions.CLEAN_UP) {
+          // chrome.runtime.onMessage.removeListener(this.overlayHandler)
+          msg.value && this.stop()
+          // this.toggleOverlay()
+          this.cleanUp()
+        } else
 
-    if (msg.action === popupActions.PAUSE) {
-      if (!msg.stop) {
-        browser.sendTabMessage({ action: popupActions.PAUSE })
-      }
-      this.pause()
-    }
+          if (msg.action === popupActions.PAUSE) {
+            if (!msg.stop) {
+              browser.sendTabMessage({ action: popupActions.PAUSE })
+            }
+            this.pause()
+          } else
 
-    if (msg.action === popupActions.UN_PAUSE) {
-      if (!msg.stop) {
-        browser.sendTabMessage({ action: popupActions.UN_PAUSE })
-      }
-      this.unPause()
-    }
+            if (msg.action === popupActions.UN_PAUSE) {
+              if (!msg.stop) {
+                browser.sendTabMessage({ action: popupActions.UN_PAUSE })
+              }
+              this.unPause()
+            } else {
+              this.logger.log('handlePopupMessage', msg);
+            }
   }
 
   async handleNavigation({ frameId }: any) {

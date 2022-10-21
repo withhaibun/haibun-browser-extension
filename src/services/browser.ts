@@ -23,7 +23,7 @@ export default {
       // allFrames: true,
       injectImmediately: true,
       files: [CONTENT_SCRIPT_PATH]
-    }, (injectionResult) => console.log('es', injectionResult));
+    });
     console.log('injectContentScript tab.id', tabId, b);
 
     // return new Promise(function (resolve) {
