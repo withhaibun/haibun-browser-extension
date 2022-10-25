@@ -45,7 +45,7 @@ export default class Background {
     console.log('init');
   }
 
-  async startRecording() {
+  async startRecording(tabIndex: undefined | string) {
     await this.cleanUp()
     await this.logger.connect();
 
@@ -53,7 +53,10 @@ export default class Background {
     this._handledGoto = false
     this._handledViewPortSize = false
 
-    await browser.injectContentScript()
+    const defaultId = tabIndex ? (await chrome.tabs.query({ index: parseInt(tabIndex, 10), }))[0]?.id : undefined;
+    
+
+    await browser.injectContentScript(defaultId)
     console.log('injected');
 
     // this.toggleOverlay({ open: true, clear: true })
@@ -273,7 +276,7 @@ export default class Background {
     }
 
     if (msg.action === popupActions.START_RECORDING) {
-      this.startRecording()
+      this.startRecording(msg.payload)
     } else
 
       if (msg.action === popupActions.STOP_RECORDING) {

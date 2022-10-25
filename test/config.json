@@ -2,6 +2,11 @@
   "mode": "all",
   "steppers": [
     "~@haibun/context/build/websocket-server/logger-websockets-server.js",
+    "~@haibun/web-playwright/build/web-playwright",
+    "~@haibun/domain-webpage/build/domain-webpage",
+    "~@haibun/storage-fs/build/storage-fs",
+    "~@haibun/domain-storage/build/domain-storage",
+    "~@haibun/web-server-express/build/web-server-stepper",
     "vars",
     "credentials",
     "haibun"

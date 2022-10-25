@@ -29,9 +29,8 @@ declare global {
   interface Window { background: Background; }
 }
 
-const webSocketLogger = new LoggerWebSocketsClient(new KeepAlive);
 const keepAlive = new KeepAlive();
-const ttag = { sequence: 0, featureNum: 0, loop: 0, member: 0, params: {}, trace: false }
+const webSocketLogger = new LoggerWebSocketsClient(keepAlive);
 
 const background = new Background(webSocketLogger);
 background.init();

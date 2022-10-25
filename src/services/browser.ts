@@ -16,8 +16,10 @@ export default {
     chrome.tabs.sendMessage(tabId, { action, value, clean })
   },
 
-  async injectContentScript() {
-    const { id: tabId } = await this.getActiveTab();
+  async injectContentScript(tabId: number | undefined = undefined) {
+    if (tabId === undefined) {
+      tabId = (await this.getActiveTab())?.id;
+    }
     const b = await chrome.scripting.executeScript(<any>{
       target: { tabId },
       // allFrames: true,
