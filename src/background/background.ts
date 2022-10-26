@@ -45,7 +45,7 @@ export default class Background {
     console.log('init');
   }
 
-  async startRecording(tabIndex: undefined | string) {
+  async startRecording(toTabIndex: undefined | number) {
     await this.cleanUp()
     await this.logger.connect();
 
@@ -53,11 +53,16 @@ export default class Background {
     this._handledGoto = false
     this._handledViewPortSize = false
 
-    const defaultId = tabIndex ? (await chrome.tabs.query({ index: parseInt(tabIndex, 10), }))[0]?.id : undefined;
-    
-
-    await browser.injectContentScript(defaultId)
-    console.log('injected');
+    let switchId = undefined;
+    if (toTabIndex) {
+      switchId = (await chrome.tabs.query({ index: toTabIndex, }))[0]?.id;
+      await browser.injectContentScript(switchId);
+      chrome.tabs.update(switchId!, { active: true });
+      console.log(`injected and switched to ${switchId}`);
+    } else {
+      await browser.injectContentScript();
+      console.log('injected');
+    }
 
     // this.toggleOverlay({ open: true, clear: true })
 
@@ -189,7 +194,7 @@ export default class Background {
     if (!control) {
       return
     }
-
+ 
     if (control === overlayActions.RESTART) {
       chrome.storage.local.set({ restart: true })
       chrome.storage.local.set({ clear: false })
@@ -198,50 +203,50 @@ export default class Background {
       this.cleanUp()
       this.startRecording()
     }
-
+ 
     if (control === overlayActions.CLOSE) {
       this.toggleOverlay()
       chrome.runtime.onMessage.removeListener(this.overlayHandler)
     }
-
+ 
     if (control === overlayActions.COPY) {
       const options = (await storage.get('options'))?.options || {};
       const generator = new CodeGenerator(options)
       const code = generator.generate(this._recording)
-
+ 
       browser.sendTabMessage({
         action: 'CODE',
         value: code.haibun
       })
     }
-
+ 
     if (control === overlayActions.STOP) {
       chrome.storage.local.set({ clear: true })
       chrome.storage.local.set({ pause: false })
       chrome.storage.local.set({ restart: false })
       this.stop()
     }
-
+ 
     if (control === overlayActions.UNPAUSE) {
       chrome.storage.local.set({ pause: false })
       this.unPause()
     }
-
+ 
     if (control === overlayActions.PAUSE) {
       chrome.storage.local.set({ pause: true })
       this.pause()
     }
-
+ 
     // TODO: the next 3 events do not need to be listened in background
     // content script controller, should be able to handle that directly from overlay
     if (control === overlayActions.CLIPPED_SCREENSHOT) {
       browser.sendTabMessage({ action: overlayActions.TOGGLE_SCREENSHOT_CLIPPED_MODE })
     }
-
+ 
     if (control === overlayActions.FULL_SCREENSHOT) {
       browser.sendTabMessage({ action: overlayActions.TOGGLE_SCREENSHOT_MODE })
     }
-
+ 
     if (control === overlayActions.ABORT_SCREENSHOT) {
       browser.sendTabMessage({ action: overlayActions.CLOSE_SCREENSHOT_MODE })
     }
@@ -276,9 +281,8 @@ export default class Background {
     }
 
     if (msg.action === popupActions.START_RECORDING) {
-      this.startRecording(msg.payload)
+      this.startRecording(msg.payload ? parseInt(msg.payload, 10) : undefined)
     } else
-
       if (msg.action === popupActions.STOP_RECORDING) {
         browser.sendTabMessage({ action: popupActions.STOP_RECORDING })
         this.stop()
