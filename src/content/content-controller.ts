@@ -2,7 +2,6 @@
 import { popupActions, /*recordingControls*/ } from '../services/constants'
 
 import storage from '../services/storage'
-import browser from '../services/browser'
 import { Store } from '../services/Store';
 import Recorder from '../modules/recorder';
 
@@ -82,19 +81,6 @@ export default class ContentController {
         this.store.commit('close')
         break
 
-      case popupActions.PAUSE:
-        this.store.commit('pause')
-        break
-
-      case popupActions.UN_PAUSE:
-        this.store.commit('unpause')
-        break
-
-      case 'CODE':
-        ContentController.log(`code ${msg.value}`)
-        await browser.copyToClipboard(msg.value)
-        this.store.commit('showCopy')
-        break
     }
   }
 

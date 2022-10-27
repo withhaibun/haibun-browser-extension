@@ -1,14 +1,11 @@
 export const recordingControls = {
-  EVENT_RECORDER_STARTED: 'EVENT_RECORDER_STARTED',
-  GET_VIEWPORT_SIZE: 'GET_VIEWPORT_SIZE',
-  GET_CURRENT_URL: 'GET_CURRENT_URL',
-  GET_SCREENSHOT: 'GET_SCREENSHOT',
+  EVENT_RECORDER_STARTED: 'eventRecorderStarted',
+  GET_VIEWPORT_SIZE: 'getViewportSize',
+  GET_CURRENT_URL: 'getCurrentURL',
+  GET_SCREENSHOT: 'getScreenshot',
 }
 
 export const popupActions = {
-  START_RECORDING: 'START_RECORDING',
-  STOP_RECORDING: 'STOP_RECORDING',
-  CLEAN_UP: 'CLEAN_UP',
-  PAUSE: 'PAUSE',
-  UN_PAUSE: 'UN_PAUSE',
+  START_RECORDING: 'startRecording',
+  STOP_RECORDING: 'stopRecording',
 }

@@ -8,7 +8,7 @@
     "test-watch": "jest --watch --config jest.config.ts",
     "build": "webpack --config webpack/webpack.config.js",
     "build-watch": "webpack --progress --config webpack/webpack.config.watch.js",
-    "test-e2e": "HAIBUN_O_WEBPLAYWRIGHT_HEADLESS=false HAIBUN_O_WEBPLAYWRIGHT_PERSISTENT_DIRECTORY=/home/vid/D/withhaibun/haibun-browser-extension/BrowserContext/ HAIBUN_O_WEBPLAYWRIGHT_STORAGE=StorageFS HAIBUN_O_WEBPLAYWRIGHT_ARGS='--disable-extensions-except=/home/vid/D/withhaibun/haibun-browser-extension/public/' haibun-cli test/ e2e",
+    "test-e2e": "HAIBUN_O_WEBPLAYWRIGHT_HEADLESS=false HAIBUN_O_WEBPLAYWRIGHT_PERSISTENT_DIRECTORY=true HAIBUN_O_WEBPLAYWRIGHT_STORAGE=StorageFS HAIBUN_O_WEBPLAYWRIGHT_ARGS='--disable-extensions-except=./public/' haibun-cli test/ e2e",
     "cli-help": "haibun-cli test --help",
     "test-e2e-server": "HAIBUN_O_WEBPLAYWRIGHT_STORAGE=StorageFS npx  @haibun/cli test/ services"
   },

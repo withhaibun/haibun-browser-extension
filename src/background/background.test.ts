@@ -16,12 +16,6 @@ beforeEach(() => {
   // bg.init();
 })
 
-describe('pause', () => {
-  it('pauses', () => {
-    mockChrome.runtime.sendMessage({ action: popupActions.UN_PAUSE, stop })
-  });
-});
-
 describe('startRecording', () => {
   it('starts recording', () => {
     mockChrome.runtime.sendMessage({ action: popupActions.START_RECORDING })
@@ -34,9 +28,3 @@ describe('stop', () => {
     // await this.generateCode()
   });
 });
-
-describe('cleanup', () => {
-  it('cleans up', () => {
-    mockChrome.runtime.sendMessage({ action: popupActions.CLEAN_UP, value: stop })
-  });
-})

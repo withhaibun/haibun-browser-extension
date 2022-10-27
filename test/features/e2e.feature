@@ -1,7 +1,8 @@
 Backgrounds: extension
 
 This test will open some Chrome extension debugging pages, then open a test page. 
-Finally, it will open the extension popup window in a new tab, and click its Record button.
+It will open the extension popup window in a new tab, and click its Record button.
+Then it will switch to a test page, where the operator can record tests.
 
 On the chrome://extensions/ webpage
 
@@ -16,6 +17,4 @@ open extension popup for tab 2
 
 Click the button record
 
-On tab 2
-Click `Heading`
 pause for 3000s

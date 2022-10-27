@@ -1,3 +1,4 @@
+import { TWithContext } from "@haibun/context/build/Context";
 import Background from "./background";
 import { KeepAlive } from "./KeepAlive";
 
@@ -17,11 +18,12 @@ export class LoggerWebSocketsClient {
   }
   async disconnect() {
   }
-  log(args: any, ctx: any) {
-    this.out('log', args, ctx);
+  log(args: any, message: TWithContext) {
+    this.out('log', args, { ...message, ctime: new Date().getTime() });
   }
-  out(level: any, args: any, ctx: any) {
-    this.socket.send(JSON.stringify({ level: JSON.stringify(level), args, ctx }))
+
+  out(level: any, args: any, contexted: TWithContext & { ctime: number }) {
+    this.socket.send(JSON.stringify({ level: JSON.stringify(level), contexted }))
   };
 }
 

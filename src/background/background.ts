@@ -7,6 +7,7 @@ import { headlessActions } from '../modules/code-generator/constants'
 import CodeGenerator from '../modules/code-generator/index';
 import { IConnectedLogger } from '@haibun/core/build/lib/interfaces/logger';
 import { LoggerWebSocketsClient } from '.'
+import { TWithContext } from '@haibun/context/build/Context'
 
 const badge = new Badge();
 
@@ -90,6 +91,7 @@ export default class Background {
     });
 
     badge.start()
+    this.logger.log('startRecording', <TWithContext>{ '@context': '#ambe/control', 'control': 'startRecording' });
   }
 
   async stop() {
@@ -183,7 +185,7 @@ export default class Background {
     msg.frameUrl = sender?.url;
 
     if (!this._isPaused) {
-      this.logger.log('handleMessage', msg);
+      // this.logger.log('handleMessage', msg);
       // this._recording.push(msg)
       // storage.set({ recording: this._recording })
     }
@@ -282,34 +284,12 @@ export default class Background {
 
     if (msg.action === popupActions.START_RECORDING) {
       this.startRecording(msg.payload ? parseInt(msg.payload, 10) : undefined)
-    } else
-      if (msg.action === popupActions.STOP_RECORDING) {
-        browser.sendTabMessage({ action: popupActions.STOP_RECORDING })
-        this.stop()
-      } else
-
-        if (msg.action === popupActions.CLEAN_UP) {
-          // chrome.runtime.onMessage.removeListener(this.overlayHandler)
-          msg.value && this.stop()
-          // this.toggleOverlay()
-          this.cleanUp()
-        } else
-
-          if (msg.action === popupActions.PAUSE) {
-            if (!msg.stop) {
-              browser.sendTabMessage({ action: popupActions.PAUSE })
-            }
-            this.pause()
-          } else
-
-            if (msg.action === popupActions.UN_PAUSE) {
-              if (!msg.stop) {
-                browser.sendTabMessage({ action: popupActions.UN_PAUSE })
-              }
-              this.unPause()
-            } else {
-              this.logger.log('handlePopupMessage', msg);
-            }
+    } else if (msg.action === popupActions.STOP_RECORDING) {
+      browser.sendTabMessage({ action: popupActions.STOP_RECORDING })
+      this.stop()
+    } else {
+      this.logger.log('handlePopupMessage', msg);
+    }
   }
 
   async handleNavigation({ frameId }: any) {
