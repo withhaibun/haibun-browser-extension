@@ -12,6 +12,9 @@
     "cli-help": "haibun-cli test --help",
     "test-e2e-server": "HAIBUN_O_WEBPLAYWRIGHT_STORAGE=StorageFS npx  @haibun/cli test/ services"
   },
+  "bin": {
+    "record": "build/record.js"
+  },
   "keywords": [],
   "author": "",
   "license": "ISC",

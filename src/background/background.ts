@@ -4,8 +4,6 @@ import storage from '../services/storage'
 import { popupActions, recordingControls } from '../services/constants'
 // import { overlayActions } from '../modules/overlay/constants'
 import { headlessActions } from '../modules/code-generator/constants'
-import CodeGenerator from '../modules/code-generator/index';
-import { IConnectedLogger } from '@haibun/core/build/lib/interfaces/logger';
 import { LoggerWebSocketsClient } from '.'
 import { TWithContext } from '@haibun/context/build/Context'
 
@@ -13,9 +11,9 @@ const badge = new Badge();
 
 export default class Background {
   private _recording: any[]
-  private _boundedMessageHandler: any
-  private _boundedNavigationHandler: any
-  private _boundedWaitHandler: any
+  private _boundMessageHandler: any
+  private _boundNavigationHandler: any
+  private _boundWaitHandler: any
   // overlayHandler: any
   private _badgeState: string
   private _isPaused: boolean
@@ -26,9 +24,9 @@ export default class Background {
   constructor(logger: LoggerWebSocketsClient) {
     this.logger = logger;
     this._recording = []
-    this._boundedMessageHandler = null
-    this._boundedNavigationHandler = null
-    this._boundedWaitHandler = null
+    this._boundMessageHandler = null
+    this._boundNavigationHandler = null
+    this._boundWaitHandler = null
 
     // this.overlayHandler = null
 
@@ -56,6 +54,7 @@ export default class Background {
 
     let switchId = undefined;
     if (toTabIndex) {
+      console.log('>>>', await chrome.tabs.query({ index: toTabIndex, }));
       switchId = (await chrome.tabs.query({ index: toTabIndex, }))[0]?.id;
       await browser.injectContentScript(switchId);
       chrome.tabs.update(switchId!, { active: true });
@@ -67,9 +66,9 @@ export default class Background {
 
     // this.toggleOverlay({ open: true, clear: true })
 
-    this._boundedMessageHandler = this.handleMessage.bind(this)
-    this._boundedNavigationHandler = this.handleNavigation.bind(this)
-    this._boundedWaitHandler = () => badge.wait()
+    this._boundMessageHandler = this.handleMessage.bind(this)
+    this._boundNavigationHandler = this.handleNavigation.bind(this)
+    this._boundWaitHandler = () => badge.wait()
 
     // this.overlayHandler = this.handleOverlayMessage.bind(this)
 
@@ -81,9 +80,9 @@ export default class Background {
         console.log(':::', tab);
       });
     });
-    chrome.webNavigation.onBeforeNavigate.addListener(this._boundedWaitHandler)
+    chrome.webNavigation.onBeforeNavigate.addListener(this._boundWaitHandler)
     chrome.webNavigation.onCompleted.addListener((what) => {
-      this._boundedNavigationHandler(what);
+      this._boundNavigationHandler(what);
       console.log('xal1', what)
       chrome.tabs.query({ active: true, currentWindow: true }, (where) => {
         console.log('xal', what, where)
@@ -91,16 +90,17 @@ export default class Background {
     });
 
     badge.start()
-    this.logger.log('startRecording', <TWithContext>{ '@context': '#ambe/control', 'control': 'startRecording' });
+    const { url } = (await browser.getActiveTab());
+    this.logger.log('startRecording', <TWithContext>{ '@context': '#haibun/control', 'control': 'startRecording', href: url });
   }
 
   async stop() {
     await this.logger.disconnect();
     this._badgeState = this._recording.length > 0 ? '1' : ''
 
-    chrome.runtime.onMessage.removeListener(this._boundedMessageHandler)
-    chrome.webNavigation.onCompleted.removeListener(this._boundedNavigationHandler)
-    chrome.webNavigation.onBeforeNavigate.removeListener(this._boundedWaitHandler)
+    chrome.runtime.onMessage.removeListener(this._boundMessageHandler)
+    chrome.webNavigation.onCompleted.removeListener(this._boundNavigationHandler)
+    chrome.webNavigation.onBeforeNavigate.removeListener(this._boundWaitHandler)
 
     badge.stop(this._badgeState)
 
@@ -286,6 +286,7 @@ export default class Background {
       this.startRecording(msg.payload ? parseInt(msg.payload, 10) : undefined)
     } else if (msg.action === popupActions.STOP_RECORDING) {
       browser.sendTabMessage({ action: popupActions.STOP_RECORDING })
+      this.logger.log('stopRecording', <TWithContext>{ '@context': '#haibun/control', 'control': 'stopRecording' });
       this.stop()
     } else {
       this.logger.log('handlePopupMessage', msg);
@@ -293,11 +294,13 @@ export default class Background {
   }
 
   async handleNavigation({ frameId }: any) {
+    console.log('navigatoin', frameId);
+
     // await browser.injectContentScript()
     // this.toggleOverlay({ open: true, pause: this._isPaused })
 
     if (frameId === 0) {
-      this.recordNavigation()
+      this.recordNavigation();
     }
   }
 

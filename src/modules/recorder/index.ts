@@ -36,9 +36,9 @@ export default class Recorder {
     }
 
     if (this._isTopFrame) {
-      this._sendMessage({ '@context': '#ambe/control', control: recordingControls.EVENT_RECORDER_STARTED })
-      this._sendMessage({ '@context': '#ambe/control', control: recordingControls.GET_CURRENT_URL, href: window.location.href })
-      this._sendMessage({'@context': '#ambe/control', control: recordingControls.GET_VIEWPORT_SIZE, coordinates: { width: window.innerWidth, height: window.innerHeight },
+      this._sendMessage({ '@context': '#haibun/control', control: recordingControls.EVENT_RECORDER_STARTED })
+      this._sendMessage({ '@context': '#haibun/control', control: recordingControls.GET_CURRENT_URL, href: window.location.href })
+      this._sendMessage({'@context': '#haibun/control', control: recordingControls.GET_VIEWPORT_SIZE, coordinates: { width: window.innerWidth, height: window.innerHeight },
       });
     }
     return this;
@@ -66,7 +66,7 @@ export default class Recorder {
       this.store.commit('showRecorded')
 
       this._sendMessage({
-        '@context': '#ambe/event',
+        '@context': '#haibun/event',
         selector,
         value: e.target.value,
         tagName: e.target.tagName,
