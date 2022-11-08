@@ -1,6 +1,5 @@
 import getSelector from '../../services/selector'
 import { recordingControls } from '../../services/constants'
-import { overlaySelectors } from '../overlay/constants'
 import { eventsToRecord } from '../code-generator/constants'
 import { Store } from '../../services/Store';
 import { TBrowserContextMessage } from '@haibun/feature-importer/build/lib/defs';
