@@ -52,16 +52,11 @@ export default class Background {
     this._handledGoto = false
     this._handledViewPortSize = false
 
-    let switchId = undefined;
     if (toTabIndex) {
       console.log('>>>', await chrome.tabs.query({ index: toTabIndex, }));
-      switchId = (await chrome.tabs.query({ index: toTabIndex, }))[0]?.id;
-      await browser.injectContentScript(switchId);
-      chrome.tabs.update(switchId!, { active: true });
-      console.log(`injected and switched to ${switchId}`);
-    } else {
-      await browser.injectContentScript();
-      console.log('injected');
+      const tabId = (await chrome.tabs.query({ index: toTabIndex, }))[0]?.id;
+      await this.injectContentScript('startRecording', tabId!);
+      chrome.tabs.update(tabId!, { active: true });
     }
 
     // this.toggleOverlay({ open: true, clear: true })
@@ -81,17 +76,19 @@ export default class Background {
       });
     });
     chrome.webNavigation.onBeforeNavigate.addListener(this._boundWaitHandler)
-    chrome.webNavigation.onCompleted.addListener((what) => {
+    chrome.webNavigation.onCompleted.addListener(async (what) => {
       this._boundNavigationHandler(what);
-      console.log('xal1', what)
-      chrome.tabs.query({ active: true, currentWindow: true }, (where) => {
-        console.log('xal', what, where)
-      });
+      const where = await chrome.tabs.query({ active: true, currentWindow: true });
+      await this.injectContentScript('webNavigation.onComplete', where[0].id!);
     });
 
     badge.start()
     const { url } = (await browser.getActiveTab());
     this.logger.log('startRecording', <TWithContext>{ '@context': '#haibun/control', 'control': 'startRecording', href: url });
+  }
+  injectContentScript(reason: string, tabId: number) {
+    this.logger.log(reason, <TWithContext>{ '@context': '#haibun/info', 'info': `inject ${reason}` });
+    browser.injectContentScript(tabId);
   }
 
   async stop() {
