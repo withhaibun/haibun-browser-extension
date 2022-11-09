@@ -40,7 +40,7 @@
     "@haibun/domain-webpage": "1.10.2",
     "@types/sinon": "^10.0.13",
     "@types/urijs": "^1.19.19",
-    "jest-environment-jsdom": "^29.1.2",
+    "jest-environment-jsdom": "^29.3.1",
     "lodash": "^4.17.21",
     "sinon": "^14.0.1",
     "typemoq": "^2.1.0",
