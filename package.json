@@ -24,7 +24,7 @@
   "devDependencies": {
     "@haibun/context": "1.10.15",
     "@haibun/domain-webpage": "1.10.15",
-    "@haibun/feature-importer": "1.10.15",
+    "@haibun/feature-importer": "1.10.16",
     "@haibun/web-server-express": "1.10.16",
     "@types/chrome": "0.0.203",
     "@types/jest": "^29.1.2",
