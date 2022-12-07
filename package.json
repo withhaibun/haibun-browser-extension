@@ -1,6 +1,6 @@
 {
   "name": "@haibun/browser-extension",
-  "version": "1.11.1",
+  "version": "1.11.0",
   "description": "",
   "main": "build/context.js",
   "files": [
@@ -22,10 +22,10 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "@haibun/context": "1.11.1",
-    "@haibun/domain-webpage": "1.11.1",
-    "@haibun/feature-importer": "1.11.1",
-    "@haibun/web-server-express": "1.11.1",
+    "@haibun/context": "1.11.0",
+    "@haibun/domain-webpage": "1.11.0",
+    "@haibun/feature-importer": "1.11.0",
+    "@haibun/web-server-express": "1.11.0",
     "@types/chrome": "0.0.203",
     "@types/jest": "^29.1.2",
     "@types/urijs": "^1.19.19",
@@ -40,7 +40,7 @@
     "webpack-cli": "^4.9.1"
   },
   "dependencies": {
-    "@haibun/core": "1.11.1",
+    "@haibun/core": "1.11.0",
     "@medv/finder": "^2.1.0",
     "ws": "8.9.0"
   }
