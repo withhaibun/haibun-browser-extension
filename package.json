@@ -11,9 +11,10 @@
     "test-watch": "jest --watch --config jest.config.ts",
     "build": "webpack --config webpack/webpack.config.js",
     "build-watch": "webpack --progress --config webpack/webpack.config.watch.js",
-    "test-e2e": "HAIBUN_O_WEBPLAYWRIGHT_HEADLESS=false HAIBUN_O_WEBPLAYWRIGHT_PERSISTENT_DIRECTORY=true HAIBUN_O_WEBPLAYWRIGHT_STORAGE=StorageFS HAIBUN_O_WEBPLAYWRIGHT_ARGS='--disable-extensions-except=./public/' haibun-cli test/ e2e",
-    "cli-help": "haibun-cli test --help",
-    "test-e2e-server": "HAIBUN_O_WEBPLAYWRIGHT_STORAGE=StorageFS npx  @haibun/cli test/ services"
+    "test-e2e-extension": "HAIBUN_O_WEBPLAYWRIGHT_HEADLESS=false HAIBUN_O_WEBPLAYWRIGHT_PERSISTENT_DIRECTORY=true HAIBUN_O_WEBPLAYWRIGHT_STORAGE=StorageFS HAIBUN_O_WEBPLAYWRIGHT_ARGS='--disable-extensions-except=./public/' haibun-cli test/ e2e",
+    "test-e2e-server": "HAIBUN_O_WEBPLAYWRIGHT_STORAGE=StorageFS haibun-cli test/ services",
+    "test-e2e": "HAIBUN_O_WEBPLAYWRIGHT_HEADLESS=false HAIBUN_O_WEBPLAYWRIGHT_PERSISTENT_DIRECTORY=true HAIBUN_O_WEBPLAYWRIGHT_STORAGE=StorageFS HAIBUN_O_WEBPLAYWRIGHT_ARGS='--disable-extensions-except=./public/' haibun-cli test/",
+    "cli-help": "haibun-cli test --help"
   },
   "bin": {
     "record": "build/record.js"
@@ -23,8 +24,11 @@
   "license": "ISC",
   "devDependencies": {
     "@haibun/context": "1.11.0",
+    "@haibun/domain-storage": "1.11.0",
     "@haibun/domain-webpage": "1.11.0",
     "@haibun/feature-importer": "1.11.0",
+    "@haibun/storage-fs": "1.11.0",
+    "@haibun/web-playwright": "1.11.0",
     "@haibun/web-server-express": "1.11.0",
     "@types/chrome": "0.0.203",
     "@types/jest": "^29.1.2",
