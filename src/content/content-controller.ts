@@ -59,7 +59,6 @@ export default class ContentController {
     if (!msg?.action) {
       return
     }
-    console.log('aa', msg.action);
 
     switch (msg.action) {
 
@@ -80,14 +79,6 @@ export default class ContentController {
         msg?.value?.open ? this.overlay.mount(msg.value) : this.overlay.unmount()
         break
       */
-      case 'ERROR':
-        this.errorMessage(msg.value);
-        const btn = <HTMLButtonElement>document.getElementById('button-record');
-        console.log('woops');
-
-        btn.innerHTML = msg.value;
-        break
-
       case popupActions.STOP_RECORDING:
         this.store.commit('close')
         break

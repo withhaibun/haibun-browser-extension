@@ -165,8 +165,6 @@ export default class Background {
   */
 
   handleMessage(msg: any, sender?: any) {
-    console.log('###', msg);
-
     if (msg.control) {
       return this.handleRecordingMessage(msg /*, sender*/)
     }
