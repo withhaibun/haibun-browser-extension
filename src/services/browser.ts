@@ -7,8 +7,8 @@ export default {
     return <TTabWithId>tab[0];
   },
 
-  async sendTabMessage({ action, value = undefined, clean = undefined }: { action: string, value?: any, clean?: boolean }) {
-    const { id: tabId } = await this.getActiveTab();
+  async sendTabMessage({ action, value = undefined, clean = undefined }: { action: string, value?: any, clean?: boolean }, id?: number) {
+    const tabId = id !== undefined ? id : (await this.getActiveTab()).id;
     chrome.tabs.sendMessage(tabId, { action, value, clean })
   },
 

@@ -14,3 +14,11 @@ btn?.addEventListener('click', () => {
     chrome.runtime.sendMessage({ action: popupActions.STOP_RECORDING });
   }
 });
+
+chrome.runtime.onMessage.addListener(
+  function (request, sender, sendResponse) {
+    if (request.action === 'ERROR') {
+      btn.innerHTML = request.value;
+      btn.disabled = true;
+    }
+  })

@@ -1,38 +1,24 @@
-import { TWithContext } from "@haibun/context/build/Context";
+import { DEFAULT_PORT } from "..";
 import Background from "./background";
-import { KeepAlive } from "./KeepAlive";
-
-// FIXME should use ConenctedLogger, LoggerWebSocketsClient, etc
-export class LoggerWebSocketsClient {
-  socket: WebSocket;
-  keepAlive: KeepAlive;
-  constructor(keepAlive: KeepAlive) {
-    this.keepAlive = keepAlive;
-    this.socket = new WebSocket('ws://localhost:3294');
-    this.socket.onmessage = (event) => {
-      console.log('e', event);
-    };
-  }
-  async connect() {
-    this.keepAlive.start();
-  }
-  async disconnect() {
-  }
-  log(args: any, message: TWithContext) {
-    this.out('log', args, { ...message, ctime: new Date().getTime() });
-  }
-
-  out(level: any, args: any, contexted: TWithContext & { ctime: number }) {
-    this.socket.send(JSON.stringify({ level: JSON.stringify(level), contexted }))
-  };
-}
+import { LoggerWebSocketsClient } from "@haibun/context/build/websocket-client/LoggerWebSocketsClient";
+import { ExtensionKeepAlive } from "@haibun/context/build/websocket-client/ExtensionKeepAlive";
 
 declare global {
   interface Window { background: Background; }
 }
 
-const keepAlive = new KeepAlive();
-const webSocketLogger = new LoggerWebSocketsClient(keepAlive);
+const port = DEFAULT_PORT;
+const keepAlive = new ExtensionKeepAlive();
 
+const webSocketLogger = new LoggerWebSocketsClient(port, keepAlive);
 const background = new Background(webSocketLogger);
 background.init();
+
+loggerConnect(webSocketLogger);
+
+async function loggerConnect(logger: LoggerWebSocketsClient) {
+  const errorHandler = (error: any) => {
+    background.handleMessage({ action: 'ERROR', value: `Could not connect to websocket on port ${port} ${JSON.stringify(error)}.` });
+  }
+  await logger.connect(errorHandler);
+}

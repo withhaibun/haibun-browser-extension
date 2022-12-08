@@ -4,7 +4,7 @@ import storage from '../services/storage'
 import { popupActions, recordingControls } from '../services/constants'
 // import { overlayActions } from '../modules/overlay/constants'
 import { headlessActions } from '../modules/code-generator/constants'
-import { LoggerWebSocketsClient } from '.'
+import { LoggerWebSocketsClient } from "@haibun/context/build/websocket-client/LoggerWebSocketsClient";
 import { TWithContext } from '@haibun/context/build/Context'
 
 const badge = new Badge();
@@ -46,7 +46,6 @@ export default class Background {
 
   async startRecording(toTabIndex: undefined | number) {
     await this.cleanUp()
-    await this.logger.connect();
 
     this._badgeState = ''
     this._handledGoto = false
@@ -166,8 +165,17 @@ export default class Background {
   */
 
   handleMessage(msg: any, sender?: any) {
+    console.log('###', msg);
+
     if (msg.control) {
       return this.handleRecordingMessage(msg /*, sender*/)
+    }
+
+    if (msg.action === 'ERROR') {
+      setTimeout(() => {
+        badge.setText('ERR')
+        chrome.runtime.sendMessage(msg);
+      }, 1000);
     }
 
     /*

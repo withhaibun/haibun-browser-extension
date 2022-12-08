@@ -6,8 +6,6 @@ import { Store } from '../services/Store';
 import Recorder from '../modules/recorder';
 
 // import Capture from '../modules/capture'
-
-
 export default class ContentController {
   backgroundListener?: any;
   store: Store
@@ -51,14 +49,20 @@ export default class ContentController {
     chrome.runtime.onMessage.addListener(this.backgroundListener)
   }
 
+  errorMessage(message: string) {
+    ContentController.log(message);
+  }
+
   async handleBackgroundMessages(msg: any) {
     ContentController.log(`handleBackgroundMessages ${JSON.stringify(msg)}`);
 
     if (!msg?.action) {
       return
     }
+    console.log('aa', msg.action);
 
     switch (msg.action) {
+
       /*
       case overlayActions.TOGGLE_SCREENSHOT_MODE:
         this.handleScreenshot(false)
@@ -76,6 +80,13 @@ export default class ContentController {
         msg?.value?.open ? this.overlay.mount(msg.value) : this.overlay.unmount()
         break
       */
+      case 'ERROR':
+        this.errorMessage(msg.value);
+        const btn = <HTMLButtonElement>document.getElementById('button-record');
+        console.log('woops');
+
+        btn.innerHTML = msg.value;
+        break
 
       case popupActions.STOP_RECORDING:
         this.store.commit('close')
