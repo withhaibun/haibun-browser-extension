@@ -125,33 +125,20 @@ export default class Background {
 
   recordCurrentUrl(href: string) {
     if (!this._handledGoto) {
-      this.handleMessage({
-        selector: undefined,
-        value: undefined,
-        action: headlessActions.GOTO,
-        href,
-      })
+      this.logger.log('recordCurrentUrl', <TWithContext>{ '@context': '#haibun/control', 'control': 'recordCurrentUrl', href });
       this._handledGoto = true
     }
   }
 
   recordCurrentViewportSize(value: { width: number, height: number }) {
     if (!this._handledViewPortSize) {
-      this.handleMessage({
-        selector: undefined,
-        value,
-        action: headlessActions.VIEWPORT,
-      })
+      this.logger.log('viewportSize', <TWithContext>{ '@context': '#haibun/control', 'control': 'viewportSize', value });
       this._handledViewPortSize = true
     }
   }
 
   recordNavigation() {
-    this.handleMessage({
-      selector: undefined,
-      value: undefined,
-      action: headlessActions.NAVIGATION,
-    })
+    this.logger.log('navigation', <TWithContext>{ '@context': '#haibun/control', 'control': 'navigation' });
   }
 
   /*
