@@ -1,27 +1,27 @@
 import Badge from '../services/badge'
 import browser from '../services/browser'
 import storage from '../services/storage'
-import { popupActions, recordingControls } from '../services/constants'
 // import { overlayActions } from '../modules/overlay/constants'
 import { headlessActions } from '../modules/code-generator/constants'
 import { LoggerWebSocketsClient } from "@haibun/context/build/websocket-client/LoggerWebSocketsClient";
 import { TWithContext } from '@haibun/context/build/Context'
 
-const badge = new Badge();
 
-export default class Background {
-  private _recording: any[]
-  private _boundMessageHandler: any
-  private _boundNavigationHandler: any
-  private _boundWaitHandler: any
+export default abstract class AbstractBackground {
+  _recording: any[]
+  _boundMessageHandler: any
+  _boundNavigationHandler: any
+  _boundWaitHandler: any
   // overlayHandler: any
-  private _badgeState: string
-  private _isPaused: boolean
-  private _handledGoto: boolean
-  private _handledViewPortSize: boolean
+  _badgeState: string
+  _isPaused: boolean
+  _handledGoto: boolean
+  _handledViewPortSize: boolean
   logger: LoggerWebSocketsClient;
+  badge: Badge
 
   constructor(logger: LoggerWebSocketsClient) {
+    this.badge = new Badge();
     this.logger = logger;
     this._recording = []
     this._boundMessageHandler = null
@@ -62,28 +62,14 @@ export default class Background {
 
     this._boundMessageHandler = this.handleMessage.bind(this)
     this._boundNavigationHandler = this.handleNavigation.bind(this)
-    this._boundWaitHandler = () => badge.wait()
+    this._boundWaitHandler = () => this.badge.wait()
 
     // this.overlayHandler = this.handleOverlayMessage.bind(this)
 
     // chrome.runtime.onMessage.addListener(this._boundedMessageHandler)
     // chrome.runtime.onMessage.addListener(this.overlayHandler)
 
-    chrome.tabs.onActivated.addListener((activeInfo) => {
-      chrome.tabs.get(activeInfo.tabId, function (tab) {
-        console.log(':::', tab);
-      });
-    });
-    chrome.webNavigation.onBeforeNavigate.addListener(this._boundWaitHandler)
-    chrome.webNavigation.onCompleted.addListener(async (what) => {
-      this._boundNavigationHandler(what);
-      const where = await chrome.tabs.query({ active: true, currentWindow: true });
-      await this.injectContentScript('webNavigation.onComplete', where[0].id!);
-    });
-
-    badge.start()
-    const { url } = (await browser.getActiveTab());
-    this.logger.log('startRecording', <TWithContext>{ '@context': '#haibun/control', 'control': 'startRecording', href: url });
+    this.badge.start()
   }
   injectContentScript(reason: string, tabId: number) {
     this.logger.log(reason, <TWithContext>{ '@context': '#haibun/info', 'info': `inject ${reason}` });
@@ -98,48 +84,36 @@ export default class Background {
     chrome.webNavigation.onCompleted.removeListener(this._boundNavigationHandler)
     chrome.webNavigation.onBeforeNavigate.removeListener(this._boundWaitHandler)
 
-    badge.stop(this._badgeState)
+    this.badge.stop(this._badgeState)
 
     storage.set({ recording: this._recording })
   }
 
   pause() {
-    badge.pause()
+    this.badge.pause()
     this._isPaused = true
   }
 
   unPause() {
-    badge.start()
+    this.badge.start()
     this._isPaused = false
   }
 
   cleanUp() {
     this._recording = []
     this._isPaused = false
-    badge.reset()
+    this.badge.reset()
 
     return new Promise(function (resolve) {
       chrome.storage.local.remove('recording', () => resolve(true))
     })
   }
 
-  recordCurrentUrl(href: string) {
-    if (!this._handledGoto) {
-      this.logger.log('recordCurrentUrl', <TWithContext>{ '@context': '#haibun/control', 'control': 'recordCurrentUrl', href });
-      this._handledGoto = true
-    }
-  }
+  abstract recordCurrentUrl(href: string): Promise<void>;
 
-  recordCurrentViewportSize(value: { width: number, height: number }) {
-    if (!this._handledViewPortSize) {
-      this.logger.log('viewportSize', <TWithContext>{ '@context': '#haibun/control', 'control': 'viewportSize', value });
-      this._handledViewPortSize = true
-    }
-  }
+  abstract recordCurrentViewportSize(value: { width: number, height: number }): Promise<void>;
 
-  recordNavigation() {
-    this.logger.log('navigation', <TWithContext>{ '@context': '#haibun/control', 'control': 'navigation' });
-  }
+  abstract recordNavigation(): Promise<void>;
 
   /*
   recordScreenshot(value: any) {
@@ -158,7 +132,7 @@ export default class Background {
 
     if (msg.action === 'ERROR') {
       setTimeout(() => {
-        badge.setText('ERR')
+        this.badge.setText('ERR')
         chrome.runtime.sendMessage(msg);
       }, 1000);
     }
@@ -245,54 +219,11 @@ export default class Background {
   }
   */
 
-  handleRecordingMessage({ control, href, value, coordinates }: any) {
-    if (control === recordingControls.EVENT_RECORDER_STARTED) {
-      badge.setText(this._badgeState)
-    }
+  abstract handleRecordingMessage({ control, href, value, coordinates }: any): void;
 
-    if (control === recordingControls.GET_VIEWPORT_SIZE) {
-      this.recordCurrentViewportSize(coordinates)
-    }
+  abstract handlePopupMessage(msg: any): void;
 
-    if (control === recordingControls.GET_CURRENT_URL) {
-      this.recordCurrentUrl(href)
-    }
-
-    /*
-    if (control === recordingControls.GET_SCREENSHOT) {
-      this.recordScreenshot(value)
-    }
-    */
-  }
-
-  handlePopupMessage(msg: any) {
-    console.log('\n\n________\nMESSAGE', msg);
-
-    if (!msg.action) {
-      return;
-    }
-
-    if (msg.action === popupActions.START_RECORDING) {
-      this.startRecording(msg.payload ? parseInt(msg.payload, 10) : undefined)
-    } else if (msg.action === popupActions.STOP_RECORDING) {
-      browser.sendTabMessage({ action: popupActions.STOP_RECORDING })
-      this.logger.log('stopRecording', <TWithContext>{ '@context': '#haibun/control', 'control': 'stopRecording' });
-      this.stop()
-    } else {
-      this.logger.log('handlePopupMessage', msg);
-    }
-  }
-
-  async handleNavigation({ frameId }: any) {
-    console.log('navigatoin', frameId);
-
-    // await browser.injectContentScript()
-    // this.toggleOverlay({ open: true, pause: this._isPaused })
-
-    if (frameId === 0) {
-      this.recordNavigation();
-    }
-  }
+  abstract handleNavigation({ frameId }: any): Promise<void>; 
 
   /*
   // TODO: Use a better naming convention for this arguments

@@ -1,5 +1,5 @@
 import { popupActions } from '../services/constants';
-import Background from './background';
+import Background from './Background';
 import MockChrome  from '../mock-chrome/MockChrome';
 
 declare global {

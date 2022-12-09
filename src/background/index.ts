@@ -1,5 +1,5 @@
 import { DEFAULT_PORT } from "..";
-import Background from "./background";
+import Background from "./Background";
 import { LoggerWebSocketsClient } from "@haibun/context/build/websocket-client/LoggerWebSocketsClient";
 import { ExtensionKeepAlive } from "@haibun/context/build/websocket-client/ExtensionKeepAlive";
 
