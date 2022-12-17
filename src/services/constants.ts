@@ -8,4 +8,5 @@ export const recordingControls = {
 export const popupActions = {
   START_RECORDING: 'startRecording',
   STOP_RECORDING: 'stopRecording',
+  READY: 'READY'
 }

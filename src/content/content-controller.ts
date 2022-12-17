@@ -31,19 +31,11 @@ export default class ContentController {
 
     // this.recorder.init(() => this.listenBackgroundMessages())
     this.listenBackgroundMessages();
-    this.listenNetworkRequests();
   }
 
   static log(msg: string) {
     chrome.devtools.inspectedWindow.eval(`console.log(CC< '${msg}')`);
   }
-  listenNetworkRequests() {
-    const handleNetworkRequest = (request: any) => {
-      ContentController.log('"request: " + unescape("' + escape(request.request.url));
-    }
-    chrome.devtools.network.onRequestFinished.addListener(handleNetworkRequest);
-  };
-
   listenBackgroundMessages() {
     this.backgroundListener = this.backgroundListener || this.handleBackgroundMessages.bind(this);
     chrome.runtime.onMessage.addListener(this.backgroundListener)

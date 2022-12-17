@@ -13,7 +13,6 @@ export class PortRuntimeOnMessage implements chrome.runtime.ExtensionMessageEven
     }
 
     public addListener(callback: TAddListenerCallback): void {
-        console.log('addListeners PortRuntimeOnMessage');
         this.ctx.listeners.push(callback);
     }
 
@@ -45,10 +44,7 @@ export class PortRuntimeOnMessage implements chrome.runtime.ExtensionMessageEven
     }
 
     public sendMessage(message: any): void {
-        console.log('sm');
-
         this.ctx.listeners.forEach((listener) => {
-            console.log('sm', 'PortRuntimeOnMessage');
             listener(message);
         });
     }

@@ -7,23 +7,19 @@ declare global {
   interface Window { contentController: ContentController }
   interface Window { pptRecorderAddedControlListeners: any; }
 }
-wtw(this);
-function wtw(t: any) {
-  return new Promise((resolve, reject) => {
 
-    document.body.style.backgroundColor = 'orange';
-    setTimeout(() => { document.body.style.backgroundColor = 'white'; }, 1000);
-    const store = new Store();
-    window.contentController = new ContentController({
-      // overlay: new Overlay({ store }),
-      recorder: new Recorder({ store }).init(),
-      store
-    });
-
-  });
-}
+const bg = document.body.style.backgroundColor;
+document.body.style.backgroundColor = 'orange';
+setTimeout(() => { document.body.style.backgroundColor = bg; }, 1000);
+const store = new Store();
+window.contentController = new ContentController({
+  // overlay: new Overlay({ store }),
+  recorder: new Recorder({ store }).init(),
+  store
+});
 
 
 // console.log('init headlessController');
 
 // window.contentController.init();
+

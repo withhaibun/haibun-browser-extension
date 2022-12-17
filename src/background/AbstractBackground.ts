@@ -3,15 +3,31 @@ import browser from '../services/browser'
 import storage from '../services/storage'
 // import { overlayActions } from '../modules/overlay/constants'
 import { headlessActions } from '../modules/code-generator/constants'
-import { LoggerWebSocketsClient } from "@haibun/context/build/websocket-client/LoggerWebSocketsClient";
+import LoggerWebSocketsClient from "@haibun/context/build/websocket-client/LoggerWebSocketsClient";
 import { TWithContext } from '@haibun/context/build/Context'
 
+export type THandlers = {
+  runtime: {
+    onMessage: (message: any, sender: any, sendResponse: (response: any) => void) => void,
+  },
+  webNavigation: {
+    onBeforeNavigate: (details: any) => void,
+    onCompleted: (details: any) => void
+  },
+  webRequest: {
+    onBeforeRequest: (details: any) => void
+  },
+  tabs: {
+    onActivated: (activeInfo: any) => void
+  },
+  network: {
+    onRequestFinished: (request: any) => void
+  }
+}
 
 export default abstract class AbstractBackground {
+  handlers?: THandlers = undefined;
   _recording: any[]
-  _boundMessageHandler: any
-  _boundNavigationHandler: any
-  _boundWaitHandler: any
   // overlayHandler: any
   _badgeState: string
   _isPaused: boolean
@@ -24,9 +40,6 @@ export default abstract class AbstractBackground {
     this.badge = new Badge();
     this.logger = logger;
     this._recording = []
-    this._boundMessageHandler = null
-    this._boundNavigationHandler = null
-    this._boundWaitHandler = null
 
     // this.overlayHandler = null
 
@@ -39,9 +52,12 @@ export default abstract class AbstractBackground {
     this._handledViewPortSize = false
   }
 
+  sendControlMessage(type: string, value: TWithContext) {
+    this.logger.log(type, { control: type, '@context': '#haibun/control', ...value });
+  }
+
   init() {
     chrome.runtime.onMessage.addListener((request, sender, sendResponse) => this.handlePopupMessage(request));
-    console.log('init');
   }
 
   async startRecording(toTabIndex: undefined | number) {
@@ -58,15 +74,17 @@ export default abstract class AbstractBackground {
       chrome.tabs.update(tabId!, { active: true });
     }
 
-    // this.toggleOverlay({ open: true, clear: true })
+    for (const [type, value] of Object.entries(this.handlers!)) {
+      for (const [name, handler] of Object.entries(value)) {
+        console.log('adding', name, (chrome as any)[type][name]);
 
-    this._boundMessageHandler = this.handleMessage.bind(this)
-    this._boundNavigationHandler = this.handleNavigation.bind(this)
-    this._boundWaitHandler = () => this.badge.wait()
+        (chrome as any)[type][name].addListener(handler);
+      }
+    }
+    // this.toggleOverlay({ open: true, clear: true })
 
     // this.overlayHandler = this.handleOverlayMessage.bind(this)
 
-    // chrome.runtime.onMessage.addListener(this._boundedMessageHandler)
     // chrome.runtime.onMessage.addListener(this.overlayHandler)
 
     this.badge.start()
@@ -80,12 +98,13 @@ export default abstract class AbstractBackground {
     await this.logger.disconnect();
     this._badgeState = this._recording.length > 0 ? '1' : ''
 
-    chrome.runtime.onMessage.removeListener(this._boundMessageHandler)
-    chrome.webNavigation.onCompleted.removeListener(this._boundNavigationHandler)
-    chrome.webNavigation.onBeforeNavigate.removeListener(this._boundWaitHandler)
-
+    for (const [type, value] of Object.entries(this.handlers!)) {
+      for (const [name, handler] of Object.entries(value)) {
+        (chrome as any)[type][name].removeListener(handler);
+      }
+    }
+    this.handlers = undefined;
     this.badge.stop(this._badgeState)
-
     storage.set({ recording: this._recording })
   }
 
@@ -125,7 +144,7 @@ export default abstract class AbstractBackground {
   }
   */
 
-  handleMessage(msg: any, sender?: any) {
+  onMessage(msg: any, sender?: any) {
     if (msg.control) {
       return this.handleRecordingMessage(msg /*, sender*/)
     }
@@ -137,11 +156,11 @@ export default abstract class AbstractBackground {
       }, 1000);
     }
 
-    /*
-    if (msg.type === 'SIGN_CONNECT') {
-      return
-    }
-    */
+    console.log('onMessage', msg, sender);
+    setTimeout(() => {
+      this.badge.setText('WAIT')
+      chrome.runtime.sendMessage(msg);
+    }, 1000);
 
     // NOTE: To account for clicks etc. we need to record the frameId
     // and url to later target the frame in playback
@@ -223,7 +242,7 @@ export default abstract class AbstractBackground {
 
   abstract handlePopupMessage(msg: any): void;
 
-  abstract handleNavigation({ frameId }: any): Promise<void>; 
+  abstract onCompleted({ frameId }: any): Promise<void>;
 
   /*
   // TODO: Use a better naming convention for this arguments

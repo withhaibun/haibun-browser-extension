@@ -9,7 +9,6 @@ export class PortOnMessage implements chrome.runtime.PortMessageEvent {
     }
 
     public addListener(callback: (message: Object, port: chrome.runtime.Port) => void): void {
-        console.log('addListeners PortOnMessage');
 
         this.listeners.push(callback);
     }
@@ -43,8 +42,6 @@ export class PortOnMessage implements chrome.runtime.PortMessageEvent {
 
     public sendMessage(message: any): void {
         this.listeners.forEach(listener => {
-            console.log('sm', 'PortOnMessage');
-            
             listener(message);
         });
     }

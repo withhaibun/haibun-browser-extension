@@ -15,10 +15,13 @@ btn?.addEventListener('click', () => {
   }
 });
 
-chrome.runtime.onMessage.addListener(
-  function (request, sender, sendResponse) {
-    if (request.action === 'ERROR') {
-      btn.innerHTML = request.value;
-      btn.disabled = true;
-    }
-  })
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+  if (request.action === 'READY') {
+    btn.innerHTML = START;
+    btn.disabled = false;
+  }
+  if (request.action === 'ERROR') {
+    btn.innerHTML = request.value;
+    btn.disabled = true;
+  }
+});

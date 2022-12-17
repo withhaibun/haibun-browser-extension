@@ -1,47 +1,67 @@
 import browser from '../services/browser'
 import { popupActions, recordingControls } from '../services/constants'
-import { LoggerWebSocketsClient } from "@haibun/context/build/websocket-client/LoggerWebSocketsClient";
-import { TWithContext } from '@haibun/context/build/Context'
+import LoggerWebSocketsClient from "@haibun/context/build/websocket-client/LoggerWebSocketsClient";
 import AbstractBackground from './AbstractBackground'
 
+// http://www.softwareishard.com/blog/har-12-spec/#entries
+export type TRequestResult = {
+  // unique ID for request
+  pageref: string,
+  startedDateTime: string,
+  time: number,
+  request: any,
+  response: any,
+  cache: any,
+  timings: {},
+  serverIPAddress: string,
+  connection: number,
+  comment: string
+}
 export default class Background extends AbstractBackground {
   constructor(logger: LoggerWebSocketsClient) {
     super(logger);
   }
 
   async startRecording(toTabIndex: undefined | number) {
+    this.handlers = {
+      runtime: {
+        onMessage: this.onMessage.bind(this),
+      },
+      webNavigation: {
+        onBeforeNavigate: this.onBeforeNavigate.bind(this),
+        onCompleted: this.onCompleted.bind(this),
+      },
+      webRequest: {
+        onBeforeRequest: this.onBeforeRequest.bind(this),
+      },
+      tabs: {
+        onActivated: this.onActivated.bind(this),
+      },
+      network: {
+        onRequestFinished: this.onRequestFinished.bind(this),
+      },
+    }
     super.startRecording(toTabIndex);
-    chrome.tabs.onActivated.addListener((activeInfo) => {
-      chrome.tabs.get(activeInfo.tabId, function (tab) {
-        console.log(':::', tab);
-      });
-    });
-    chrome.webNavigation.onBeforeNavigate.addListener(this._boundWaitHandler)
-    chrome.webNavigation.onCompleted.addListener(async (what) => {
-      this._boundNavigationHandler(what);
-      const where = await chrome.tabs.query({ active: true, currentWindow: true });
-      await this.injectContentScript('webNavigation.onComplete', where[0].id!);
-    });
-
-    const { url } = (await browser.getActiveTab());
-    this.logger.log('startRecording', <TWithContext>{ '@context': '#haibun/control', 'control': 'startRecording', href: url });
+    const { url: href } = (await browser.getActiveTab());
+    this.sendControlMessage('startRecording', { href });
   }
+
   async recordCurrentUrl(href: string) {
     if (!this._handledGoto) {
-      this.logger.log('recordCurrentUrl', <TWithContext>{ '@context': '#haibun/control', 'control': 'recordCurrentUrl', href });
+      this.sendControlMessage('recordCurrentUrl', { href });
       this._handledGoto = true
     }
   }
 
   async recordCurrentViewportSize(value: { width: number, height: number }) {
     if (!this._handledViewPortSize) {
-      this.logger.log('viewportSize', <TWithContext>{ '@context': '#haibun/control', 'control': 'viewportSize', value });
+      this.sendControlMessage('viewportSize', { value });
       this._handledViewPortSize = true
     }
   }
 
   async recordNavigation() {
-    this.logger.log('navigation', <TWithContext>{ '@context': '#haibun/control', 'control': 'navigation' });
+    this.sendControlMessage('navigation', {});
   }
 
   handleRecordingMessage({ control, href, value, coordinates }: any) {
@@ -74,21 +94,40 @@ export default class Background extends AbstractBackground {
       this.startRecording(msg.payload ? parseInt(msg.payload, 10) : undefined)
     } else if (msg.action === popupActions.STOP_RECORDING) {
       browser.sendTabMessage({ action: popupActions.STOP_RECORDING })
-      this.logger.log('stopRecording', <TWithContext>{ '@context': '#haibun/control', 'control': 'stopRecording' });
+      this.sendControlMessage(popupActions.STOP_RECORDING, {});
       this.stop()
     } else {
       this.logger.log('handlePopupMessage', msg);
     }
   }
 
-  async handleNavigation({ frameId }: any) {
-    console.log('navigatoin', frameId);
+  onRequestFinished(request: TRequestResult) {
+    this.sendControlMessage('onRequestFinished', {
+      serverIPAddress: request.serverIPAddress, pageref: request.pageref, time: request.time
+    });
+  };
 
-    // await browser.injectContentScript()
+  onActivated(activeInfo: any) {
+    chrome.tabs.get(activeInfo.tabId, function (tab) {
+      console.log(':::', tab);
+    });
+  }
+
+  async onBeforeRequest({ url }: any) {
+    this.sendControlMessage('onBeforeRequest', { url });
+  }
+
+  async onBeforeNavigate({ url }: any) {
+    this.sendControlMessage('onBeforeNavigate', { url });
+  }
+
+  async onCompleted({ frameId }: any) {
+    console.log('onCompleted', frameId);
     // this.toggleOverlay({ open: true, pause: this._isPaused })
-
     if (frameId === 0) {
       this.recordNavigation();
     }
+    const where = await chrome.tabs.query({ active: true, currentWindow: true });
+    await this.injectContentScript('webNavigation.onComplete', where[0].id!);
   }
 }

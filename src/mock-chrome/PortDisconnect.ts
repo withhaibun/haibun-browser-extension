@@ -12,7 +12,6 @@ export class PortDisconnect implements chrome.runtime.PortDisconnectEvent {
     }
 
     public addListener(callback: any): void {
-        console.log('addListeners PortDisconnect');
         this.listeners.push(callback);
         this.callbackForDisconnect.push(callback);
     }

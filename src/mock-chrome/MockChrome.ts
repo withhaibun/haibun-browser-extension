@@ -54,9 +54,7 @@ const onMessage: chrome.runtime.ExtensionMessageEvent = new PortRuntimeOnMessage
 const onConnect: chrome.runtime.ExtensionConnectEvent = new PortRuntimeOnConnect(ctx);
 
 const sendMessage = async (message: any) => {
-    console.log('sendMessage', message);
    for (const listener of ctx.listeners) {
-       console.log('sendMessage', 'listener', listener);
        listener(message);
    }
 };

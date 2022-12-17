@@ -9,7 +9,6 @@ export class PortRuntimeOnConnect implements chrome.runtime.ExtensionConnectEven
     }
 
     public addListener(callback: (port: chrome.runtime.Port) => void): void {
-        console.log('addListeners PortRuntimeOnConnect');
         this.ctx.listeners.push(callback);
     }
 
@@ -42,8 +41,6 @@ export class PortRuntimeOnConnect implements chrome.runtime.ExtensionConnectEven
 
     public sendMessage(message: any): void {
         this.ctx.listeners.forEach(listener => {
-            console.log(listener);
-            
             listener(message);
         });
     }
