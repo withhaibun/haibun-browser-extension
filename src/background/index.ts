@@ -1,8 +1,8 @@
 import { DEFAULT_PORT } from "..";
 import Background from "./Background";
 import LoggerWebSocketsClient from "@haibun/context/build/websocket-client/LoggerWebSocketsClient";
-import { ChromeExtensionKeepAlive } from "@haibun/context/build/websocket-client/ChromeExtensionKeepAlive";
 import { popupActions } from "../services/constants";
+import { ChromeExtensionKeepAlive } from "../ChromeExtensionKeepAlive";
 
 declare global {
   interface Window { background: Background; }
